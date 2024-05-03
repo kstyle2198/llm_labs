@@ -1,3 +1,6 @@
+__pycache__
 adv_llm_env
 .streamlit
 data
+chroma
+model

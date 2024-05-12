@@ -4,7 +4,7 @@ from pathlib import Path
 parent_dir = Path(__file__).parent.parent
 base_dir = str(parent_dir) + "\data"
 
-
+@st.experimental_fragment
 class FileUploader():
     def __init__(self):
         pass

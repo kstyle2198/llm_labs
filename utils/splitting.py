@@ -1,10 +1,10 @@
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import streamlit as st
 
 
 
-
-
+@st.experimental_fragment
 class Splitter():
     def __init__(self):
         pass

@@ -1,7 +1,8 @@
 import streamlit as st
-from style import make_title, make_gap, custom_page_config
+from style import make_title, make_gap, button_style, custom_page_config
 
-custom_page_config()
+button_style()
+
 
 if __name__ == "__main__":
     

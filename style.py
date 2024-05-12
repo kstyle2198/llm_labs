@@ -12,7 +12,12 @@ title_font_size = "45px"
 title_color = "navy"
 def make_title(emoji:str, title:str):
     global title_font_size, title_color
-    st.markdown(f"<h1 style='text-align:center; font-size: {title_font_size}; color: {title_color};'>{emoji} {title}</h1>", unsafe_allow_html=True)
+    st.markdown(""" <style> .font {font-size:50px ; font-family: 'Cooper Black'; color: #FF9633;} </style> """, unsafe_allow_html=True)
+    st.markdown(f"<p calss='font' style='text-align:center; font-size: {title_font_size}; color: {title_color};'>{emoji} {title}</p>", unsafe_allow_html=True)
+
+
+# st.markdown('<p class="font">Guess the object Names</p>', unsafe_allow_html=True)
+
 
 
 def button_style():
@@ -29,6 +34,20 @@ def button_style():
             left:0%
             }
             </style>""", unsafe_allow_html=True)
+    
+    ### Font change -> 나눔고딕 
+
+    # font_link = 'https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap'
+    font_link = "https://fonts.googleapis.com/css2?family=Sedan+SC&display=swap"
+    st.markdown(f'<link href="{font_link}" rel="stylesheet">', unsafe_allow_html=True)
+    custom_css = """
+    <style>
+        html, body, [class*="st-"] {
+            font-family: 'Nanum Gothic', sans-serif;
+        }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
 
 
 gap_border_line = False

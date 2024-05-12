@@ -1,8 +1,10 @@
 import chromadb
+import streamlit as st
 from sentence_transformers import SentenceTransformer
 client = chromadb.PersistentClient()
 
 
+@st.experimental_fragment
 class ChromaVectorStore():
     def __init__(self):
         pass

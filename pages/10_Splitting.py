@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
     col331, col332, col333 = st.columns(3)
     with col331: selected_splitter = st.radio("Splitter", ["RecursiveCharacterTextSplitter", "CharacterTextSplitter"])
-    with col332: chunck_size = st.number_input("chunck_size", step=50, min_value=200, max_value=500, value="min", key="dgjlkdfj")
-    with col333: chunk_overlap = st.number_input("chunk_overlap", step=10, min_value=20, max_value=100, value="min", key="dgjlkddfdffj")
+    with col332: chunck_size = st.number_input("chunck_size", step=100, min_value=300, max_value=1000, value="min", key="dgjlkdfj")
+    with col333: chunk_overlap = st.number_input("chunk_overlap", step=10, min_value=50, max_value=200, value="min", key="dgjlkddfdffj")
 
     with st.expander("Pasing Documents"):
         with st.container(height=300):
@@ -30,13 +30,13 @@ if __name__ == "__main__":
                 st.session_state.pages
             except:
                 st.warning("Pasing을 먼저 실시해주세요.")
-
-    if st.button("Split"):
-        st.session_state.splitted_result = ""
-        if selected_splitter == "RecursiveCharacterTextSplitter":
-            st.session_state.splitted_result = splitter.do_recursive_character_text_split(st.session_state.pages, chunk_size=chunck_size, chunk_overlap=chunk_overlap, seperator=["\n\n", "\n", " ", ""])
-        else:
-            st.info("CharacterTextSplitter 준비 안됨.. 거의 안쓰니까..")
+    with st.spinner("Processing..."):
+        if st.button("Split"):
+            st.session_state.splitted_result = ""
+            if selected_splitter == "RecursiveCharacterTextSplitter":
+                st.session_state.splitted_result = splitter.do_recursive_character_text_split(st.session_state.pages, chunk_size=chunck_size, chunk_overlap=chunk_overlap, seperator=["\n\n", "\n", " ", ""])
+            else:
+                st.info("CharacterTextSplitter 준비 안됨.. 거의 안쓰니까..")
 
     
     st.session_state.content_list = [x.page_content for x in st.session_state.splitted_result]

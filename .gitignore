@@ -4,3 +4,5 @@ adv_llm_env
 data
 chroma
 model
+images
+test_index

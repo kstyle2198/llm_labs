@@ -1,3 +1,11 @@
+'''
+pip install fitz
+pip install PyMuPDF
+pip install unstructured
+pip install Markdown
+'''
+
+
 
 import os
 import streamlit as st
@@ -42,25 +50,25 @@ if __name__ == "__main__":
         with col21:
             btn21 = st.button("Parsing")
         with col22:
-            보기 = ["PyPDFLoader", "PyMuPDFLoader"]
+            보기 = ["PyPDFLoader", "PyMuPDFLoader", "UnstructuredMarkdownLoader"]
             sel99 = st.selectbox("Select PDF Uploader", 보기)
         with col23:
-            st.markdown("가능파일 : PDF, CSV, TXT, Markdown, DOCX")
+            st.empty()
 
         if btn21:
             if "pdf" in st.session_state.path and sel99 == "PyPDFLoader":
-                st.session_state.pages = parser.load_PyPDFLoader(st.session_state.path)
+                st.session_state.pages = parser.load_PyPDFLoader(path=st.session_state.path)
             elif "pdf" in st.session_state.path and sel99 == "PyMuPDFLoader":
-                st.session_state.pages = parser.load_PyMuPDFLoader(st.session_state.path) 
+                st.session_state.pages = parser.load_PyMuPDFLoader(path=st.session_state.path) 
 
-            elif "csv" in st.session_state.path:
-                st.session_state.pages = Parsing.load_CSVLoader(st.session_state.path)
+            # elif "csv" in st.session_state.path:
+            #     st.session_state.pages = Parsing.load_CSVLoader(st.session_state.path)
             # elif "docx" in st.session_state.path:
             #     st.session_state.pages = load_docx(st.session_state.path)
-            elif "txt" in st.session_state.path:
-                st.session_state.pages = Parsing.load_TextLoader(st.session_state.path)
-            elif "md" in st.session_state.path:
-                st.session_state.pages = Parsing.load_UnstructuredMarkdownLoader(st.session_state.path)    
+            # elif "txt" in st.session_state.path:
+            #     st.session_state.pages = Parsing.load_TextLoader(st.session_state.path)
+            elif "md" in st.session_state.path and sel99 == "UnstructuredMarkdownLoader":
+                st.session_state.pages = parser.load_UnstructuredMarkdownLoader(path=st.session_state.path)    
             else:
                 st.empty()
 
@@ -74,12 +82,14 @@ if __name__ == "__main__":
                     pass
         with col222:
             with st.container():
-                page_num = st.number_input('Page_content Number1', step=1)
+                page_num = st.number_input('Page_content Number', step=1, key="wrevd")
                 st.session_state.pages[page_num].metadata
                 st.session_state.pages[page_num].page_content
-                    
+                st.session_state.pages
 
 
+
+   
 
 
 

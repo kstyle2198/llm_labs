@@ -1,12 +1,11 @@
 from langchain.storage import InMemoryStore
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_community.llms import CTransformers
 import streamlit as st
 
-
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
 
 @st.experimental_fragment
 class ParentDocuRetriever():
@@ -25,11 +24,7 @@ class ParentDocuRetriever():
         model_name = "nomic-ai/nomic-embed-text-v1"
         model_kwargs = {'device': 'cpu', "trust_remote_code":True}
         encode_kwargs = {'normalize_embeddings': False}
-        embed_model = HuggingFaceEmbeddings(
-            model_name=model_name,
-            model_kwargs=model_kwargs,
-            encode_kwargs=encode_kwargs
-            )
+        embed_model = OllamaEmbeddings(model="nomic-embed-text")
         return embed_model
     
     def create_ms(self):
@@ -41,12 +36,7 @@ class ParentDocuRetriever():
         return vectorstore
     
     def load_llm(self):
-        llm = CTransformers(model="./model/llama-2-7b-chat.ggmlv3.q8_0.bin", # Location of downloaded GGML model
-                            model_type="llama",
-                            stream=True,
-                            config={'max_new_tokens': 256,
-                                    'temperature': 0,
-                                    'context_length': 4096})
+        llm = ChatOllama(model="llama3:latest")
         return llm
     
     def create_retriever(self, vectorstore, store, child_splitter, parent_splitter, docs):

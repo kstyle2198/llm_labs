@@ -6,8 +6,11 @@ from langchain_core.messages import HumanMessage
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains.combine_documents import create_stuff_documents_chain
-
-
+import time
+def stream_data(answer):
+    for word in answer.split(" "):
+        yield word + " "
+        time.sleep(0.1)
 import sys
 sys.path.append("../")
 from style import make_title, make_gap, button_style, custom_page_config
@@ -98,6 +101,7 @@ if __name__ == "__main__":
             st.session_state.result19 =  result9
 
     st.session_state.result19
+    st.write_stream(stream_data(st.session_state.result19))
 
 
 

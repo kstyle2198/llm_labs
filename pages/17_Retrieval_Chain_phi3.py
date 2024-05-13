@@ -5,23 +5,26 @@ import sys
 sys.path.append("../")
 from style import make_title, make_gap, button_style, custom_page_config
 
-
-
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain import HuggingFacePipeline
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
-from llama_cpp import Llama
 
+
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
+import time
 
 custom_page_config(layout='wide')
 button_style()
 
-
+def stream_data(answer):
+    for word in answer.split(" "):
+        yield word + " "
+        time.sleep(0.1)
 
 # A utility function for answer generation
 def ask(question):
@@ -31,6 +34,8 @@ def ask(question):
    answer = (chain({"input_documents": context, "question": question}, return_only_outputs=True))['output_text']
    return answer
 
+if "result17" not in st.session_state:
+    st.session_state.result17 = ""
 
 if __name__ == "__main__":
     make_title(emoji="🧪", title="Retrieval Chain")
@@ -44,49 +49,39 @@ if __name__ == "__main__":
 
     user_question = st.text_input("My Query", "what is the main features of FW Generator?")
     
-    if st.button("Test4"):
-        model_name = "nomic-ai/nomic-embed-text-v1"
-        model_kwargs = {'device': 'cpu', "trust_remote_code":True}
-        encode_kwargs = {'normalize_embeddings': False}
-        embed_model = HuggingFaceEmbeddings(
-            model_name=model_name,
-            model_kwargs=model_kwargs,
-            encode_kwargs=encode_kwargs
-            )
+    with st.spinner("Processing..."):
+        if st.button("Test4"):
+            model_name = "nomic-ai/nomic-embed-text-v1"
+            model_kwargs = {'device': 'cpu', "trust_remote_code":True}
+            encode_kwargs = {'normalize_embeddings': False}
+            embed_model = OllamaEmbeddings(model="nomic-embed-text")
 
+            llm = ChatOllama(model="phi3:latest")
+            db=Chroma.from_documents(splitted_texts, embedding=embed_model, persist_directory="test_index")
 
-        llm = Llama(
-            model_path="./model/Phi-3-mini-4k-instruct-q4.gguf",  # path to GGUF file
-            n_ctx=4096,  # The max sequence length to use - note that longer sequence lengths require much more resources
-            n_threads=8, # The number of CPU threads to use, tailor to your system and the resulting performance
-            n_gpu_layers=0, # The number of layers to offload to GPU, if you have GPU acceleration available. Set to 0 if no GPU acceleration is available on your system.
-            )
+            # Load the database
+            vectordb = Chroma(persist_directory="test_index", embedding_function = embed_model)
 
+            # Load the retriver
+            retriever = vectordb.as_retriever(search_kwargs = {"k" : 3})
 
-        db=Chroma.from_documents(splitted_texts, embedding=embed_model, persist_directory="test_index")
-        # db.persist()
+            # Define the custom prompt template suitable for the Phi-3 model
+            qna_prompt_template="""<|system|>
+            You have been provided with the context and a question, try to find out the answer to the question only using the context information. If the answer to the question is not found within the context, return "I dont know" as the response.<|end|>
+            <|user|>
+            Context:
+            {context}
 
-        # Load the database
-        vectordb = Chroma(persist_directory="test_index", embedding_function = embed_model)
+            Question: {question}<|end|>
+            <|assistant|>"""
+            PROMPT = PromptTemplate(template=qna_prompt_template, input_variables=["context", "question"])
 
-        # Load the retriver
-        retriever = vectordb.as_retriever(search_kwargs = {"k" : 3})
+            # Define the QNA chain
+            chain = load_qa_chain(llm, chain_type="stuff", prompt=PROMPT)
 
-        # Define the custom prompt template suitable for the Phi-3 model
-        qna_prompt_template="""<|system|>
-        You have been provided with the context and a question, try to find out the answer to the question only using the context information. If the answer to the question is not found within the context, return "I dont know" as the response.<|end|>
-        <|user|>
-        Context:
-        {context}
+            # Take the user input and call the function to generate output
+            answer = ask(user_question)
+            st.session_state.result17 = (answer.split("<|assistant|>")[-1]).strip()
 
-        Question: {question}<|end|>
-        <|assistant|>"""
-        PROMPT = PromptTemplate(template=qna_prompt_template, input_variables=["context", "question"])
-
-        # Define the QNA chain
-        chain = load_qa_chain(llm, chain_type="stuff", prompt=PROMPT)
-
-        # Take the user input and call the function to generate output
-        answer = ask(user_question)
-        answer = (answer.split("<|assistant|>")[-1]).strip()
-        answer
+        st.write_stream(stream_data(st.session_state.result17))
+        st.session_state.result17

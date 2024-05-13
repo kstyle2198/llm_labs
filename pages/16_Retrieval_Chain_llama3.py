@@ -5,20 +5,26 @@ import sys
 sys.path.append("../")
 from style import make_title, make_gap, button_style, custom_page_config
 from langchain_community.vectorstores import FAISS
-from langchain_community.llms import CTransformers
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.utils import DistanceStrategy
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
+import time
 
 
 custom_page_config(layout='wide')
 button_style()
 
 
-if "result17" not in st.session_state:
-    st.session_state.result17 = ""
+if "result16" not in st.session_state:
+    st.session_state.result16 = ""
 
+def stream_data(answer):
+    for word in answer.split(" "):
+        yield word + " "
+        time.sleep(0.1)
 
 if __name__ == "__main__":
     make_title(emoji="🧪", title="Retrieval Chain")
@@ -38,25 +44,14 @@ if __name__ == "__main__":
             model_name = "nomic-ai/nomic-embed-text-v1"
             model_kwargs = {'device': 'cpu', "trust_remote_code":True}
             encode_kwargs = {'normalize_embeddings': True}
-            embed_model = HuggingFaceEmbeddings(
-                model_name=model_name,
-                model_kwargs=model_kwargs,
-                encode_kwargs=encode_kwargs,
-                multi_process=False,
-                show_progress=False
-                )
+            embed_model = OllamaEmbeddings(model="nomic-embed-text")
             vectorstore = FAISS.from_documents(splitted_texts, embed_model, distance_strategy=DistanceStrategy.DOT_PRODUCT)
             retriever = vectorstore.as_retriever(k=4)
             docs = retriever.invoke(my_query)
             docs
 
 
-            llm = CTransformers(model="./model/llama-2-7b-chat.ggmlv3.q8_0.bin", # Location of downloaded GGML model
-                                model_type="llama",
-                                stream=True,
-                                config={'max_new_tokens': 256,
-                                        'temperature': 0,
-                                        'context_length': 4096})
+            llm = ChatOllama(model="llama3:latest")
 
             SYSTEM_TEMPLATE = """
             Answer the user's questions based on the below context. 
@@ -85,8 +80,9 @@ if __name__ == "__main__":
                     ],
                 }
             )
-            st.session_state.result17 = result
+            st.session_state.result16 = result
     
-    st.session_state.result17
+    
+    st.write_stream(stream_data(st.session_state.result16))
 
     

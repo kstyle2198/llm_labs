@@ -3,18 +3,23 @@ import streamlit as st
 # from langchain.output_parsers import PydanticOutputParser
 # from langchain_core.prompts import PromptTemplate
 # from pydantic import BaseModel, Field
-from langchain_community.llms import CTransformers
 
 # from typing import List, Optional
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
 
 
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
+import time
 
+def stream_data(answer):
+    for word in answer.split(" "):
+        yield word + " "
+        time.sleep(0.1)
 
 
 import sys
@@ -48,20 +53,11 @@ if __name__ == "__main__":
             model_name = "nomic-ai/nomic-embed-text-v1"
             model_kwargs = {'device': 'cpu', "trust_remote_code":True}
             encode_kwargs = {'normalize_embeddings': False}
-            embed_model = HuggingFaceEmbeddings(
-                model_name=model_name,
-                model_kwargs=model_kwargs,
-                encode_kwargs=encode_kwargs
-                )
+            embed_model = OllamaEmbeddings(model="nomic-embed-text")
             
             vectorstore = FAISS.from_documents(docs, embed_model)
 
-            llm1 = CTransformers(model="./model/llama-2-7b-chat.ggmlv3.q8_0.bin", # Location of downloaded GGML model
-                                model_type="llama",
-                                stream=True,
-                                config={'max_new_tokens': 256,
-                                        'temperature': 0,
-                                        'context_length': 4096})
+            llm1 = ChatOllama(model="llama3:latest")
         
 
             retriever_from_llm = MultiQueryRetriever.from_llm(
@@ -106,6 +102,7 @@ if __name__ == "__main__":
             )
             st.session_state.result25 = result
     st.session_state.result25
+    st.write_stream(stream_data(st.session_state.result25))
 
 
 

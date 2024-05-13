@@ -4,15 +4,22 @@ from utils import SelfQueryRC
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_community.llms import CTransformers
 
 import sys
 sys.path.append("../")
 from style import make_title, make_gap, button_style, custom_page_config
 custom_page_config(layout='wide')
 button_style()
+
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import OllamaEmbeddings
+import time
+
+def stream_data(answer):
+    for word in answer.split(" "):
+        yield word + " "
+        time.sleep(0.1)
 
 
 # if "embed_model" not in st.session_state:
@@ -69,12 +76,7 @@ if __name__ == "__main__":
             st.session_state.self_retriever = ""
             result = self_rc.create_self_query_chain(docs, document_content_description, metadata_field_info, test_query)
             result
-            llm = CTransformers(model="./model/llama-2-7b-chat.ggmlv3.q8_0.bin", # Location of downloaded GGML model
-                            model_type="llama",
-                            stream=True,
-                            config={'max_new_tokens': 256,
-                                    'temperature': 0,
-                                    'context_length': 4096})
+            llm = ChatOllama(model="llama3:latest")
             SYSTEM_TEMPLATE = """
             Answer the user's questions based on the below context. 
             If the context doesn't contain any relevant information to the question, don't make something up and just say "I don't know":
